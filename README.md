@@ -78,7 +78,7 @@ Pre-configured for:
 
 ## 📄 License
 
-MIT License - Feel free to use and modify for your job search needs.
+All rights reserved. This is a personal project for job search automation.
 
 ---
 
