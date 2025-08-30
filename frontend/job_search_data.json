@@ -1,0 +1,204 @@
+{
+  "job_apis_and_sources": {
+    "primary_apis": [
+      {
+        "name": "Adzuna API",
+        "url": "https://developer.adzuna.com/",
+        "description": "Real-time job data from multiple sources",
+        "coverage": "Global",
+        "features": [
+          "Job search",
+          "Salary data",
+          "Job trends"
+        ]
+      },
+      {
+        "name": "JobSpy Python Library",
+        "url": "https://github.com/speedyapply/JobSpy",
+        "description": "Scrapes LinkedIn, Indeed, Glassdoor, Google, ZipRecruiter",
+        "coverage": "Global",
+        "features": [
+          "Multi-platform scraping",
+          "Concurrent processing",
+          "Proxy support"
+        ]
+      },
+      {
+        "name": "Bright Data Job APIs",
+        "url": "https://brightdata.com/datasets/job-postings",
+        "description": "Professional web scraping for LinkedIn and Indeed",
+        "coverage": "Global",
+        "features": [
+          "High-quality data",
+          "Rate limiting",
+          "Structured output"
+        ]
+      }
+    ],
+    "polish_job_sites": [
+      {
+        "name": "NoFluffJobs",
+        "url": "https://nofluffjobs.com/",
+        "description": "IT jobs with transparent salary ranges",
+        "focus": "IT/Tech positions"
+      },
+      {
+        "name": "JustJoin.IT",
+        "url": "https://justjoin.it/",
+        "description": "Tech job board",
+        "focus": "IT positions"
+      },
+      {
+        "name": "Pracuj.pl",
+        "url": "https://pracuj.pl/",
+        "description": "General job board",
+        "focus": "All industries"
+      },
+      {
+        "name": "LinkedIn Poland",
+        "url": "https://pl.linkedin.com/jobs/",
+        "description": "Professional network jobs",
+        "focus": "Professional roles"
+      },
+      {
+        "name": "Remote Rocket Ship",
+        "url": "https://www.remoterocketship.com/country/poland/",
+        "description": "Remote jobs in Poland",
+        "focus": "Remote work"
+      }
+    ]
+  },
+  "salary_benchmarks_poland": {
+    "business_analyst": {
+      "junior": {
+        "pln_gross": "7,000-11,000",
+        "experience": "0-2 years"
+      },
+      "mid": {
+        "pln_gross": "15,200-20,200",
+        "experience": "2-5 years"
+      },
+      "senior": {
+        "pln_gross": "19,200-24,200",
+        "experience": "5+ years"
+      },
+      "lead": {
+        "pln_gross": "26,000-33,000",
+        "experience": "5-7+ years"
+      }
+    },
+    "cities": {
+      "warsaw": {
+        "premium": "5-10%",
+        "description": "Highest salaries, financial center"
+      },
+      "krakow": {
+        "premium": "0-5%",
+        "description": "Major tech hub"
+      },
+      "wroclaw": {
+        "premium": "0-5%",
+        "description": "Growing tech sector"
+      },
+      "gdansk": {
+        "premium": "-5%",
+        "description": "Emerging business center"
+      },
+      "poznan": {
+        "premium": "-5%",
+        "description": "Growing market"
+      }
+    }
+  },
+  "cv_optimization_tools": [
+    {
+      "name": "SkillSyncer",
+      "url": "https://skillsyncer.com",
+      "type": "Free",
+      "features": [
+        "ATS scanning",
+        "Keyword optimization",
+        "Match scoring"
+      ]
+    },
+    {
+      "name": "Jobscan",
+      "url": "https://www.jobscan.co/",
+      "type": "Freemium",
+      "features": [
+        "Resume vs job description matching",
+        "ATS optimization",
+        "Industry insights"
+      ]
+    },
+    {
+      "name": "Resume Matcher (Open Source)",
+      "url": "https://github.com/srbhr/Resume-Matcher",
+      "type": "Free",
+      "features": [
+        "Vector similarity",
+        "Keyword analysis",
+        "ML-based matching"
+      ]
+    }
+  ],
+  "cover_letter_generators": [
+    {
+      "name": "Cover Letter Copilot",
+      "url": "https://coverlettercopilot.ai",
+      "type": "Freemium",
+      "features": [
+        "60-second generation",
+        "LinkedIn integration",
+        "Built-in editor"
+      ]
+    },
+    {
+      "name": "Jobscan Cover Letter Generator",
+      "url": "https://www.jobscan.co/cover-letter-generator",
+      "type": "Freemium",
+      "features": [
+        "Job-specific tailoring",
+        "ATS-friendly",
+        "Resume integration"
+      ]
+    },
+    {
+      "name": "Enhancv Cover Letter Generator",
+      "url": "https://enhancv.com/cover-letter-generator/",
+      "type": "Free",
+      "features": [
+        "Resume upload",
+        "Job description matching",
+        "AI customization"
+      ]
+    }
+  ],
+  "automation_platforms": [
+    {
+      "name": "n8n",
+      "url": "https://n8n.io/",
+      "type": "Open Source",
+      "description": "Workflow automation with job search templates",
+      "use_case": "Custom automation workflows"
+    },
+    {
+      "name": "LazyApply",
+      "url": "https://lazyapply.com",
+      "type": "Paid",
+      "description": "Auto-apply to jobs on LinkedIn, Indeed, ZipRecruiter",
+      "pricing": "Starting from annual plans"
+    },
+    {
+      "name": "JobCopilot",
+      "url": "https://jobcopilot.com",
+      "type": "Paid",
+      "description": "AI copilot for job applications, 50 applications per day",
+      "features": [
+        "300k+ company pages",
+        "Resume tailoring",
+        "Learning algorithms"
+      ]
+    }
+  ]
+}

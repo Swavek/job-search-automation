@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Automatyczne Wyszukiwanie Pracy - Senior Business Analyst</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="app">
+        <!-- Header -->
+        <header class="header">
+            <div class="container flex items-center justify-between">
+                <div class="logo">
+                    <h1>JobSearch Automation</h1>
+                    <p class="text-secondary">Senior Business Analyst</p>
+                </div>
+                <div class="user-info">
+                    <span>Sławomir Kublin</span>
+                    <span class="location">Tarnowskie Góry, PL</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Navigation -->
+        <nav class="nav">
+            <div class="container">
+                <div class="nav-tabs">
+                    <button class="nav-tab active" data-tab="dashboard">Dashboard</button>
+                    <button class="nav-tab" data-tab="cv-upload">CV & Profil</button>
+                    <button class="nav-tab" data-tab="job-search">Szukaj Pracy</button>
+                    <button class="nav-tab" data-tab="job-results">Wyniki</button>
+                    <button class="nav-tab" data-tab="cv-optimizer">Optymalizuj CV</button>
+                    <button class="nav-tab" data-tab="cover-letter">List Motywacyjny</button>
+                    <button class="nav-tab" data-tab="tracking">Śledzenie</button>
+                    <button class="nav-tab" data-tab="analytics">Analityka</button>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main">
+            <div class="container">
+                <!-- Dashboard Tab -->
+                <div class="tab-content active" id="dashboard">
+                    <div class="dashboard-grid">
+                        <div class="stats-cards">
+                            <div class="card">
+                                <div class="card__body">
+                                    <h3>Aktywne Wyszukiwania</h3>
+                                    <div class="stat-number">12</div>
+                                    <p class="text-secondary">Dopasowanych ofert</p>
+                                </div>
+                            </div>
+                            <div class="card">
+                                <div class="card__body">
+                                    <h3>Wysłane CV</h3>
+                                    <div class="stat-number">3</div>
+                                    <p class="text-secondary">W tym tygodniu</p>
+                                </div>
+                            </div>
+                            <div class="card">
+                                <div class="card__body">
+                                    <h3>Rozmowy</h3>
+                                    <div class="stat-number">1</div>
+                                    <p class="text-secondary">Zaplanowana</p>
+                                </div>
+                            </div>
+                            <div class="card">
+                                <div class="card__body">
+                                    <h3>Współczynnik Odpowiedzi</h3>
+                                    <div class="stat-number">25%</div>
+                                    <p class="text-secondary">Ostatnie 30 dni</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="quick-actions card">
+                            <div class="card__body">
+                                <h3>Szybkie Akcje</h3>
+                                <div class="action-buttons">
+                                    <button class="btn btn--primary" onclick="switchTab('job-search')">Nowe Wyszukiwanie</button>
+                                    <button class="btn btn--secondary" onclick="switchTab('cv-optimizer')">Optymalizuj CV</button>
+                                    <button class="btn btn--secondary" onclick="switchTab('cover-letter')">Utwórz List</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="recent-jobs card">
+                            <div class="card__body">
+                                <h3>Najnowsze Dopasowane Oferty</h3>
+                                <div class="job-list" id="dashboard-jobs">
+                                    <!-- Jobs populated by JS -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CV Upload Tab -->
+                <div class="tab-content" id="cv-upload">
+                    <div class="cv-section">
+                        <div class="card">
+                            <div class="card__body">
+                                <h2>Upload i Analiza CV</h2>
+                                <div class="upload-area" id="cv-upload-area">
+                                    <div class="upload-content">
+                                        <div class="upload-icon">📄</div>
+                                        <p>Przeciągnij plik CV tutaj lub kliknij, aby wybrać</p>
+                                        <p class="text-secondary">Obsługiwane formaty: PDF, DOCX</p>
+                                        <input type="file" id="cv-file" accept=".pdf,.docx" hidden>
+                                        <button class="btn btn--primary" onclick="document.getElementById('cv-file').click()">Wybierz Plik</button>
+                                    </div>
+                                </div>
+                                
+                                <div class="cv-analysis hidden" id="cv-analysis">
+                                    <h3>Analiza CV</h3>
+                                    <div class="analysis-grid">
+                                        <div class="skill-score">
+                                            <h4>Wynik ATS</h4>
+                                            <div class="score-circle">
+                                                <span class="score">85%</span>
+                                            </div>
+                                        </div>
+                                        <div class="extracted-skills">
+                                            <h4>Wykryte Umiejętności</h4>
+                                            <div class="skills-tags" id="extracted-skills">
+                                                <!-- Skills populated by JS -->
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="improvement-suggestions">
+                                        <h4>Sugestie Poprawy</h4>
+                                        <ul id="cv-suggestions">
+                                            <!-- Suggestions populated by JS -->
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Job Search Tab -->
+                <div class="tab-content" id="job-search">
+                    <div class="card">
+                        <div class="card__body">
+                            <h2>Konfiguracja Wyszukiwania</h2>
+                            <form class="search-form" id="job-search-form">
+                                <div class="form-grid">
+                                    <div class="form-group">
+                                        <label class="form-label">Stanowiska</label>
+                                        <input type="text" class="form-control" id="job-titles" 
+                                               value="Senior Business Analyst, Business Analyst, Product Manager" 
+                                               placeholder="Stanowiska oddzielone przecinkami">
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label class="form-label">Lokalizacja</label>
+                                        <select class="form-control" id="location-pref">
+                                            <option value="remote">Praca zdalna</option>
+                                            <option value="poland">Polska</option>
+                                            <option value="international">Międzynarodowe</option>
+                                            <option value="any">Dowolne</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label class="form-label">Zakres Wynagrodzenia (PLN brutto)</label>
+                                        <select class="form-control" id="salary-range">
+                                            <option value="19200-24200">19,200 - 24,200 PLN (Senior)</option>
+                                            <option value="24200-30000">24,200 - 30,000 PLN (Senior+)</option>
+                                            <option value="30000+">30,000+ PLN (Lead)</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label class="form-label">Typ Umowy</label>
+                                        <select class="form-control" id="contract-type">
+                                            <option value="both">Etat i Kontrakt</option>
+                                            <option value="permanent">Tylko Etat</option>
+                                            <option value="contract">Tylko Kontrakt</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label class="form-label">Branże</label>
+                                        <div class="checkbox-group">
+                                            <label><input type="checkbox" checked> IT/Tech</label>
+                                            <label><input type="checkbox" checked> Finanse</label>
+                                            <label><input type="checkbox"> Opieka Zdrowotna</label>
+                                            <label><input type="checkbox"> E-commerce</label>
+                                            <label><input type="checkbox"> Produkcja</label>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label class="form-label">Częstotliwość Wyszukiwania</label>
+                                        <select class="form-control" id="search-frequency">
+                                            <option value="daily">Codziennie</option>
+                                            <option value="weekly">Tygodniowo</option>
+                                            <option value="manual">Ręcznie</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="job-sources">
+                                    <h3>Źródła Ofert</h3>
+                                    <div class="sources-grid" id="job-sources-list">
+                                        <!-- Job sources populated by JS -->
+                                    </div>
+                                </div>
+
+                                <button type="submit" class="btn btn--primary btn--full-width">Rozpocznij Wyszukiwanie</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Job Results Tab -->
+                <div class="tab-content" id="job-results">
+                    <div class="jobs-header">
+                        <h2>Wyniki Wyszukiwania</h2>
+                        <div class="results-filters">
+                            <select class="form-control filter-select" id="sort-by">
+                                <option value="match">Najlepsze Dopasowanie</option>
+                                <option value="date">Data Publikacji</option>
+                                <option value="salary">Wynagrodzenie</option>
+                            </select>
+                            <select class="form-control filter-select" id="filter-status">
+                                <option value="all">Wszystkie</option>
+                                <option value="not-applied">Nie Aplikowano</option>
+                                <option value="interested">Interesujące</option>
+                                <option value="applied">Aplikowano</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="jobs-table-container">
+                        <table class="jobs-table">
+                            <thead>
+                                <tr>
+                                    <th>Stanowisko</th>
+                                    <th>Firma</th>
+                                    <th>Lokalizacja</th>
+                                    <th>Wynagrodzenie</th>
+                                    <th>Dopasowanie</th>
+                                    <th>Status</th>
+                                    <th>Akcje</th>
+                                </tr>
+                            </thead>
+                            <tbody id="jobs-table-body">
+                                <!-- Jobs populated by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- CV Optimizer Tab -->
+                <div class="tab-content" id="cv-optimizer">
+                    <div class="optimizer-container">
+                        <div class="card">
+                            <div class="card__body">
+                                <h2>Optymalizacja CV</h2>
+                                <div class="job-selector">
+                                    <label class="form-label">Wybierz ofertę do optymalizacji</label>
+                                    <select class="form-control" id="optimization-job">
+                                        <option value="">Wybierz ofertę pracy...</option>
+                                    </select>
+                                </div>
+
+                                <div class="optimization-results hidden" id="optimization-results">
+                                    <div class="optimization-grid">
+                                        <div class="keyword-analysis">
+                                            <h3>Analiza Słów Kluczowych</h3>
+                                            <div class="keywords-match" id="keywords-match">
+                                                <!-- Keywords populated by JS -->
+                                            </div>
+                                        </div>
+
+                                        <div class="suggestions-panel">
+                                            <h3>Sugestie Optymalizacji</h3>
+                                            <div class="suggestions-list" id="optimization-suggestions">
+                                                <!-- Suggestions populated by JS -->
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="cv-preview">
+                                        <h3>Podgląd Zoptymalizowanego CV</h3>
+                                        <div class="cv-comparison">
+                                            <div class="cv-version">
+                                                <h4>Oryginalne</h4>
+                                                <div class="cv-content" id="original-cv">
+                                                    <p>Twoje obecne CV zostanie wyświetlone tutaj po uploadzaniu pliku.</p>
+                                                </div>
+                                            </div>
+                                            <div class="cv-version">
+                                                <h4>Zoptymalizowane</h4>
+                                                <div class="cv-content" id="optimized-cv">
+                                                    <p>Zoptymalizowana wersja zostanie wygenerowana po wybraniu oferty.</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <button class="btn btn--primary" id="export-cv">Eksportuj Zoptymalizowane CV</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Cover Letter Tab -->
+                <div class="tab-content" id="cover-letter">
+                    <div class="card">
+                        <div class="card__body">
+                            <h2>Generator Listu Motywacyjnego</h2>
+                            <div class="letter-config">
+                                <div class="form-group">
+                                    <label class="form-label">Wybierz ofertę</label>
+                                    <select class="form-control" id="letter-job">
+                                        <option value="">Wybierz ofertę pracy...</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label">Szablon</label>
+                                    <select class="form-control" id="letter-template">
+                                        <option value="professional">Profesjonalny</option>
+                                        <option value="creative">Kreatywny</option>
+                                        <option value="technical">Techniczny</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label">Długość</label>
+                                    <select class="form-control" id="letter-length">
+                                        <option value="short">Krótki (200-250 słów)</option>
+                                        <option value="medium">Średni (300-400 słów)</option>
+                                        <option value="long">Długi (450-500 słów)</option>
+                                    </select>
+                                </div>
+
+                                <button class="btn btn--primary" id="generate-letter">Generuj List Motywacyjny</button>
+                            </div>
+
+                            <div class="letter-preview hidden" id="letter-preview">
+                                <h3>Podgląd Listu</h3>
+                                <div class="letter-content" id="letter-content">
+                                    <!-- Generated letter content -->
+                                </div>
+                                <div class="letter-actions">
+                                    <button class="btn btn--secondary" id="edit-letter">Edytuj</button>
+                                    <button class="btn btn--primary" id="export-letter">Eksportuj PDF</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tracking Tab -->
+                <div class="tab-content" id="tracking">
+                    <div class="tracking-dashboard">
+                        <h2>Śledzenie Aplikacji</h2>
+                        
+                        <div class="tracking-stats">
+                            <div class="stat-card">
+                                <h3>Wysłane Aplikacje</h3>
+                                <div class="stat-value">8</div>
+                            </div>
+                            <div class="stat-card">
+                                <h3>Odpowiedzi</h3>
+                                <div class="stat-value">3</div>
+                            </div>
+                            <div class="stat-card">
+                                <h3>Rozmowy</h3>
+                                <div class="stat-value">1</div>
+                            </div>
+                            <div class="stat-card">
+                                <h3>Oferty</h3>
+                                <div class="stat-value">0</div>
+                            </div>
+                        </div>
+
+                        <div class="applications-timeline" id="applications-timeline">
+                            <!-- Timeline populated by JS -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Analytics Tab -->
+                <div class="tab-content" id="analytics">
+                    <div class="analytics-dashboard">
+                        <h2>Analityka i Statystyki</h2>
+                        
+                        <div class="charts-grid">
+                            <div class="card">
+                                <div class="card__body">
+                                    <h3>Współczynnik Aplikacji</h3>
+                                    <div class="chart-container" style="position: relative; height: 300px;">
+                                        <canvas id="application-rate-chart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="card">
+                                <div class="card__body">
+                                    <h3>Trendy Wynagrodzeń</h3>
+                                    <div class="chart-container" style="position: relative; height: 300px;">
+                                        <canvas id="salary-trends-chart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="card">
+                                <div class="card__body">
+                                    <h3>Źródła Ofert</h3>
+                                    <div class="chart-container" style="position: relative; height: 300px;">
+                                        <canvas id="job-sources-chart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="card">
+                                <div class="card__body">
+                                    <h3>Czas Odpowiedzi</h3>
+                                    <div class="chart-container" style="position: relative; height: 300px;">
+                                        <canvas id="response-time-chart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="insights-panel">
+                            <h3>Insights i Rekomendacje</h3>
+                            <div class="insights-list" id="insights-list">
+                                <!-- Insights populated by JS -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Job Details Modal -->
+        <div class="modal hidden" id="job-modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 id="modal-job-title"></h3>
+                    <button class="modal-close" onclick="closeJobModal()">&times;</button>
+                </div>
+                <div class="modal-body" id="modal-job-content">
+                    <!-- Job details populated by JS -->
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn--secondary" onclick="closeJobModal()">Zamknij</button>
+                    <button class="btn btn--primary" onclick="applyToJob()">Aplikuj Teraz</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
