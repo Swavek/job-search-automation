@@ -67,7 +67,7 @@ Pre-configured for:
 - Sławomir (Swavek) Kublin
 - Location: Tarnowskie Góry, Poland
 - Role: Senior Business Analyst, Product Manager
-- 30 years experience in requirements analysis, CRM systems, SQL
+- 25 years experience in requirements analysis, CRM systems, SQL
 
 ## 🤝 Contributing
 
