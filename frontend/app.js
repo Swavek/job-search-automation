@@ -113,8 +113,72 @@ let appState = {
   searchCriteria: {},
   selectedJob: null,
   applications: [],
-  chartsInitialized: false
+  chartsInitialized: false,
+  jobs: [], // Store jobs from API
+  isLoading: false
 };
+
+// API configuration
+const API_BASE_URL = 'http://localhost:5000/api';
+
+// API helper functions
+async function apiCall(endpoint, options = {}) {
+  try {
+    appState.isLoading = true;
+    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+      headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+      },
+      ...options
+    });
+    
+    if (!response.ok) {
+      throw new Error(`API error: ${response.statusText}`);
+    }
+    
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('API call failed:', error);
+    throw error;
+  } finally {
+    appState.isLoading = false;
+  }
+}
+
+async function searchJobs(searchTerm = 'Senior Business Analyst', location = 'Poland') {
+  return await apiCall('/jobs/search', {
+    method: 'POST',
+    body: JSON.stringify({
+      search_term: searchTerm,
+      location: location
+    })
+  });
+}
+
+async function getJobs(filters = {}) {
+  const params = new URLSearchParams();
+  
+  if (filters.min_score) params.append('min_score', filters.min_score);
+  if (filters.location) params.append('location', filters.location);
+  if (filters.status) params.append('status', filters.status);
+  if (filters.limit) params.append('limit', filters.limit);
+  
+  const queryString = params.toString();
+  return await apiCall(`/jobs${queryString ? `?${queryString}` : ''}`);
+}
+
+async function updateJobStatus(jobId, status) {
+  return await apiCall(`/jobs/${jobId}/status`, {
+    method: 'PUT',
+    body: JSON.stringify({ status })
+  });
+}
+
+async function getJobStats() {
+  return await apiCall('/stats');
+}
 
 // Initialize application
 document.addEventListener('DOMContentLoaded', function() {
@@ -126,9 +190,17 @@ document.addEventListener('DOMContentLoaded', function() {
   populateApplicationTracking();
 });
 
-function initializeApp() {
+async function initializeApp() {
   // Set initial tab
   switchTab('dashboard');
+  
+  // Try to load existing jobs from API
+  try {
+    await populateJobTable();
+    await populateDashboardJobs();
+  } catch (error) {
+    console.log('No backend connection - using demo mode');
+  }
 }
 
 function setupEventListeners() {
@@ -262,49 +334,103 @@ function populateJobSources() {
   });
 }
 
-function populateDashboardJobs() {
+async function populateDashboardJobs() {
   const container = document.getElementById('dashboard-jobs');
   if (!container) return;
 
-  container.innerHTML = '';
-  applicationData.sample_jobs.slice(0, 3).forEach(job => {
-    const jobDiv = document.createElement('div');
-    jobDiv.className = 'job-item';
-    jobDiv.innerHTML = `
-      <div class="job-info">
-        <h4>${job.title}</h4>
-        <p>${job.company} • ${job.location}</p>
-      </div>
-      <div class="match-score">${job.match_score}%</div>
-    `;
-    jobDiv.addEventListener('click', () => showJobDetails(job.id));
-    jobDiv.style.cursor = 'pointer';
-    container.appendChild(jobDiv);
-  });
+  try {
+    // Get top jobs for dashboard
+    if (appState.jobs.length === 0) {
+      const response = await getJobs({ min_score: 60, limit: 10 });
+      appState.jobs = response.jobs || [];
+    }
+
+    container.innerHTML = '';
+    
+    if (appState.jobs.length === 0) {
+      container.innerHTML = '<p>Brak ofert pracy. Użyj wyszukiwarki aby znaleźć nowe oferty.</p>';
+      return;
+    }
+
+    // Show top 3 jobs sorted by match score
+    const topJobs = appState.jobs
+      .sort((a, b) => (b.match_score || 0) - (a.match_score || 0))
+      .slice(0, 3);
+
+    topJobs.forEach(job => {
+      const jobDiv = document.createElement('div');
+      jobDiv.className = 'job-item';
+      jobDiv.innerHTML = `
+        <div class="job-info">
+          <h4>${job.title || 'Brak tytułu'}</h4>
+          <p>${job.company || 'Brak firmy'} • ${job.location || 'Nie określono'}</p>
+        </div>
+        <div class="match-score">${job.match_score || 0}%</div>
+      `;
+      jobDiv.addEventListener('click', () => showJobDetails(job.id));
+      jobDiv.style.cursor = 'pointer';
+      container.appendChild(jobDiv);
+    });
+    
+  } catch (error) {
+    console.error('Error populating dashboard jobs:', error);
+    container.innerHTML = '<p>Błąd podczas ładowania ofert pracy.</p>';
+  }
 }
 
-function populateJobTable() {
+async function populateJobTable() {
   const tbody = document.getElementById('jobs-table-body');
   if (!tbody) return;
 
-  tbody.innerHTML = '';
-  applicationData.sample_jobs.forEach(job => {
-    const row = document.createElement('tr');
-    const statusClass = job.status.toLowerCase().replace(/\s+/g, '-');
-    row.innerHTML = `
-      <td class="job-title-cell">${job.title}</td>
-      <td class="company-cell">${job.company}</td>
-      <td>${job.location}</td>
-      <td class="salary-cell">${job.salary}</td>
-      <td><span class="match-percentage">${job.match_score}%</span></td>
-      <td><span class="status status--${statusClass}">${job.status}</span></td>
-      <td class="job-actions">
-        <button class="btn btn--primary btn-small" onclick="showJobDetails(${job.id})">Zobacz</button>
-        <button class="btn btn--secondary btn-small" onclick="toggleJobInterest(${job.id})">⭐</button>
-      </td>
-    `;
-    tbody.appendChild(row);
-  });
+  try {
+    // Get jobs from API if not already loaded
+    if (appState.jobs.length === 0) {
+      const response = await getJobs({ min_score: 50, limit: 50 });
+      appState.jobs = response.jobs || [];
+    }
+
+    tbody.innerHTML = '';
+    
+    if (appState.jobs.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="7">Brak ofert pracy. Użyj wyszukiwarki aby znaleźć nowe oferty.</td></tr>';
+      return;
+    }
+
+    appState.jobs.forEach(job => {
+      const row = document.createElement('tr');
+      const statusClass = (job.status || 'found').toLowerCase().replace(/\s+/g, '-');
+      
+      row.innerHTML = `
+        <td class="job-title-cell">${job.title || 'Brak tytułu'}</td>
+        <td class="company-cell">${job.company || 'Brak firmy'}</td>
+        <td>${job.location || 'Nie określono'}</td>
+        <td class="salary-cell">${job.salary_range || 'Nie określono'}</td>
+        <td><span class="match-percentage">${job.match_score || 0}%</span></td>
+        <td><span class="status status--${statusClass}">${mapStatusToPolish(job.status || 'found')}</span></td>
+        <td class="job-actions">
+          <button class="btn btn--primary btn-small" onclick="showJobDetails(${job.id})">Zobacz</button>
+          <button class="btn btn--secondary btn-small" onclick="toggleJobInterest(${job.id})">⭐</button>
+        </td>
+      `;
+      tbody.appendChild(row);
+    });
+    
+  } catch (error) {
+    console.error('Error populating job table:', error);
+    tbody.innerHTML = '<tr><td colspan="7">Błąd podczas ładowania ofert pracy.</td></tr>';
+  }
+}
+
+function mapStatusToPolish(status) {
+  const statusMap = {
+    'found': 'Znaleziono',
+    'interested': 'Zainteresowany',
+    'applied': 'Aplikowano',
+    'interview': 'Rozmowa',
+    'rejected': 'Odrzucono',
+    'offer': 'Oferta'
+  };
+  return statusMap[status] || status;
 }
 
 function populateJobSelectors() {
@@ -367,23 +493,57 @@ function handleCVUpload(event) {
   }
 }
 
-function handleJobSearch(event) {
+async function handleJobSearch(event) {
   event.preventDefault();
   
-  // Collect search criteria
-  appState.searchCriteria = {
-    titles: document.getElementById('job-titles')?.value || '',
-    location: document.getElementById('location-pref')?.value || '',
-    salary: document.getElementById('salary-range')?.value || '',
-    contractType: document.getElementById('contract-type')?.value || '',
-    frequency: document.getElementById('search-frequency')?.value || ''
-  };
+  try {
+    // Collect search criteria
+    appState.searchCriteria = {
+      titles: document.getElementById('job-titles')?.value || 'Senior Business Analyst',
+      location: document.getElementById('location-pref')?.value || 'Poland',
+      salary: document.getElementById('salary-range')?.value || '',
+      contractType: document.getElementById('contract-type')?.value || '',
+      frequency: document.getElementById('search-frequency')?.value || ''
+    };
 
-  // Show success message
-  alert('Wyszukiwanie zostało skonfigurowane! Sprawdź zakładkę "Wyniki" w celu przejrzenia dopasowanych ofert.');
-  
-  // Switch to results tab
-  switchTab('job-results');
+    // Show loading state
+    showLoadingMessage('Wyszukiwanie ofert pracy...');
+
+    // Search for jobs using API
+    const searchResult = await searchJobs(appState.searchCriteria.titles, appState.searchCriteria.location);
+    
+    if (searchResult.success) {
+      // Store jobs in app state
+      appState.jobs = searchResult.jobs || [];
+      
+      // Update job table with new data
+      populateJobTable();
+      populateDashboardJobs();
+      
+      // Show success message
+      alert(`Znaleziono ${searchResult.total_found} ofert pracy, ${searchResult.new_jobs} nowych!`);
+      
+      // Switch to results tab
+      switchTab('job-results');
+    } else {
+      throw new Error('Search failed');
+    }
+    
+  } catch (error) {
+    console.error('Job search failed:', error);
+    alert('Błąd podczas wyszukiwania ofert pracy. Sprawdź czy serwer jest uruchomiony.');
+  } finally {
+    hideLoadingMessage();
+  }
+}
+
+function showLoadingMessage(message) {
+  // You can implement a loading indicator here
+  console.log('Loading:', message);
+}
+
+function hideLoadingMessage() {
+  console.log('Loading complete');
 }
 
 function handleJobOptimization() {
@@ -534,35 +694,56 @@ function generateCoverLetter() {
 }
 
 function showJobDetails(jobId) {
-  const job = applicationData.sample_jobs.find(j => j.id == jobId);
-  if (!job) return;
+  const job = appState.jobs.find(j => j.id == jobId);
+  if (!job) {
+    console.error('Job not found:', jobId);
+    return;
+  }
 
   const modal = document.getElementById('job-modal');
   const title = document.getElementById('modal-job-title');
   const content = document.getElementById('modal-job-content');
   
   if (modal && title && content) {
-    title.textContent = job.title;
+    title.textContent = job.title || 'Brak tytułu';
+    
+    // Parse skills from requirements or description
+    let skillsHtml = '<p>Brak wymagań</p>';
+    if (job.requirements || job.description) {
+      const skillsText = job.requirements || job.description || '';
+      const commonSkills = ['SQL', 'Business Analyst', 'CRM', 'Requirements', 'Process', 'Analysis', 'Stakeholder', 'Remote'];
+      const foundSkills = commonSkills.filter(skill => 
+        skillsText.toLowerCase().includes(skill.toLowerCase())
+      );
+      
+      if (foundSkills.length > 0) {
+        skillsHtml = `<div class="skills-tags">
+          ${foundSkills.map(skill => `<span class="skill-tag">${skill}</span>`).join('')}
+        </div>`;
+      }
+    }
+    
     content.innerHTML = `
       <div class="job-detail-grid">
         <div class="job-detail-info">
           <h4>Informacje o stanowisku</h4>
-          <p><strong>Firma:</strong> ${job.company}</p>
-          <p><strong>Lokalizacja:</strong> ${job.location}</p>
-          <p><strong>Wynagrodzenie:</strong> ${job.salary}</p>
-          <p><strong>Typ umowy:</strong> ${job.type}</p>
-          <p><strong>Data publikacji:</strong> ${job.posted}</p>
-          <p><strong>Dopasowanie:</strong> <span class="match-percentage">${job.match_score}%</span></p>
+          <p><strong>Firma:</strong> ${job.company || 'Brak danych'}</p>
+          <p><strong>Lokalizacja:</strong> ${job.location || 'Nie określono'}</p>
+          <p><strong>Wynagrodzenie:</strong> ${job.salary_range || 'Nie określono'}</p>
+          <p><strong>Źródło:</strong> ${job.source_platform || 'Nieznane'}</p>
+          <p><strong>Data publikacji:</strong> ${job.posted_date || job.created_at || 'Brak danych'}</p>
+          <p><strong>Dopasowanie:</strong> <span class="match-percentage">${job.match_score || 0}%</span></p>
+          <p><strong>Status:</strong> ${mapStatusToPolish(job.status || 'found')}</p>
         </div>
         
         <div class="job-description">
           <h4>Opis stanowiska</h4>
-          <p>${job.description}</p>
+          <p>${job.description || 'Brak opisu'}</p>
           
           <h4>Wymagane umiejętności</h4>
-          <div class="skills-tags">
-            ${job.skills_required.map(skill => `<span class="skill-tag">${skill}</span>`).join('')}
-          </div>
+          ${skillsHtml}
+          
+          ${job.job_url ? `<p><strong>Link:</strong> <a href="${job.job_url}" target="_blank">Zobacz ofertę</a></p>` : ''}
         </div>
       </div>
     `;
@@ -604,12 +785,28 @@ function applyToJob() {
   closeJobModal();
 }
 
-function toggleJobInterest(jobId) {
-  const job = applicationData.sample_jobs.find(j => j.id == jobId);
-  if (!job) return;
-  
-  job.status = job.status === 'Interested' ? 'Not Applied' : 'Interested';
-  populateJobTable();
+async function toggleJobInterest(jobId) {
+  try {
+    const job = appState.jobs.find(j => j.id == jobId);
+    if (!job) return;
+    
+    // Toggle between interested and found
+    const newStatus = job.status === 'interested' ? 'found' : 'interested';
+    
+    // Update via API
+    await updateJobStatus(jobId, newStatus);
+    
+    // Update local state
+    job.status = newStatus;
+    
+    // Refresh UI
+    populateJobTable();
+    populateDashboardJobs();
+    
+  } catch (error) {
+    console.error('Error toggling job interest:', error);
+    alert('Błąd podczas aktualizacji statusu oferty.');
+  }
 }
 
 function handleTableSort() {
