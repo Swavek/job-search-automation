@@ -15,6 +15,7 @@ from datetime import datetime, timedelta
 import os
 from dotenv import load_dotenv
 import logging
+from job_scrapers import get_all_jobs, NoFluffJobsScraper, JustJoinITScraper
 
 # Load environment variables
 load_dotenv()
@@ -104,8 +105,27 @@ class JobSearcher:
             'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36'
         })
     
+    def search_real_jobs(self, search_term="Senior Business Analyst", location="Poland"):
+        """Search real job sites using scrapers"""
+        try:
+            logger.info(f"Searching real job sites for: {search_term} in {location}")
+            
+            # Use the real scrapers
+            real_jobs = get_all_jobs(search_term, location, max_per_source=10)
+            
+            if real_jobs:
+                logger.info(f"Found {len(real_jobs)} real jobs from job sites")
+                return real_jobs
+            else:
+                logger.warning("No real jobs found, falling back to demo data")
+                return self.search_demo_jobs(search_term, location)
+                
+        except Exception as e:
+            logger.error(f"Error searching real job sites: {e}")
+            return self.search_demo_jobs(search_term, location)
+    
     def search_demo_jobs(self, search_term="Senior Business Analyst", location="Poland"):
-        """Return demo jobs for initial testing"""
+        """Return demo jobs as fallback"""
         demo_jobs = [
             {
                 'title': 'Senior Business Analyst - Healthcare Platform',
@@ -126,46 +146,10 @@ class JobSearcher:
                 'source_platform': 'demo',
                 'job_url': 'https://example.com/job2',
                 'posted_date': datetime.now().date().isoformat()
-            },
-            {
-                'title': 'Lead Business Analyst - ERP Implementation',
-                'company': 'Enterprise Solutions Ltd',
-                'location': 'Kraków, Poland',
-                'salary_range': '28,000-32,000 PLN',
-                'description': 'Lead BA for major ERP implementation project. Must have experience with system integration.',
-                'source_platform': 'demo',
-                'job_url': 'https://example.com/job3',
-                'posted_date': datetime.now().date().isoformat()
             }
         ]
         
         return demo_jobs
-    
-    def search_nofluffjobs_basic(self, search_term="business analyst"):
-        """Basic NoFluffJobs search (simplified)"""
-        jobs = []
-        try:
-            # This is a simplified approach - in production, would need proper API or scraping
-            logger.info("Searching NoFluffJobs (demo mode)")
-            
-            # Return sample data for now
-            jobs = [
-                {
-                    'title': 'Senior Business Analyst',
-                    'company': 'Tech Company Poland',
-                    'location': 'Remote',
-                    'salary_range': '20,000-25,000 PLN',
-                    'description': 'Remote senior BA position with competitive salary',
-                    'source_platform': 'nofluffjobs',
-                    'job_url': 'https://nofluffjobs.com/job/example',
-                    'posted_date': datetime.now().date().isoformat()
-                }
-            ]
-            
-        except Exception as e:
-            logger.error(f"Error searching NoFluffJobs: {e}")
-        
-        return jobs
 
 @app.route('/api/health', methods=['GET'])
 def health_check():
@@ -182,11 +166,8 @@ def search_jobs():
         
         searcher = JobSearcher()
         
-        # Get jobs from different sources
-        demo_jobs = searcher.search_demo_jobs(search_term, location)
-        nofluff_jobs = searcher.search_nofluffjobs_basic(search_term)
-        
-        all_jobs = demo_jobs + nofluff_jobs
+        # Get jobs from real sources
+        all_jobs = searcher.search_real_jobs(search_term, location)
         
         # Calculate match scores and save to database
         conn = sqlite3.connect(DATABASE)
